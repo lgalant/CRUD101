@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 
@@ -19,8 +20,10 @@ import java.io.IOException;
 import java.net.ResponseCache;
 import java.util.ArrayList;
 
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
@@ -66,9 +69,18 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
             case R.id.btnGet:
                 String urlGet = urlDeApi+ id_vw.getText().toString();
                 Log.d("Get", urlGet);
-                new ConectarAPITask().execute(urlGet);
+                new ConectarAPITask().execute("GET", urlGet);
                 break;
             case R.id.btnPost:
+                Persona p = new Persona();
+                p.setId(id_vw.getText().toString());
+                p.setNombre(nombre_vw.getText().toString());
+                p.setFechaNac(fechanac_vw.getText().toString());
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+                System.out.println(gson.toJson(p));
+
+                new ConectarAPITask().execute("POST",urlDeApi, gson.toJson(p));
                 Log.d("Push", "post");
                 break;
             case R.id.btnPut:
@@ -84,13 +96,63 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
 
 
     private class ConectarAPITask extends AsyncTask<String, Void,  Persona> {
+        public final MediaType JSON
+                = MediaType.parse("application/json; charset=utf-8");
+
         @Override
         protected Persona doInBackground(String... params) {
 
-            String urlAPI = params[0];
+            String method = params[0];
+            String urlApi = params[1];
+
+            if (method.equals("GET"))
+                getPersona(urlApi);
+
+            if (method.equals("POST")) {
+                String json = params[2];
+                postPersona(urlApi, json);
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Persona persona) {
+            super.onPostExecute(persona);
+
+            if (persona != null) {
+                nombre_vw.setText(persona.getNombre());
+                fechanac_vw.setText(persona.getFechaNac());
+            }
+
+        }
+
+
+        private void postPersona(String urlApi, String json) {
+
+            OkHttpClient client = new OkHttpClient();
+
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url(urlApi)
+                    .post(body)
+                    .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                return;
+            } catch (IOException e) {
+                Log.d("Error :", e.getMessage());
+                return;
+
+            }
+        }
+
+        private Persona getPersona(String urlApi) {
+
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
-                    .url(urlAPI)
+                    .url(urlApi)
                     .build();
 
             try {
@@ -105,14 +167,6 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
             }
         }
 
-        @Override
-        protected void onPostExecute(Persona persona) {
-            super.onPostExecute(persona);
-
-            nombre_vw.setText(persona.getNombre());
-            fechanac_vw.setText(persona.getFechaNac());
-
-        }
 
         private Persona parsearResultado(String respuesta)  throws JSONException {
             Log.d("Respuesta:", respuesta);

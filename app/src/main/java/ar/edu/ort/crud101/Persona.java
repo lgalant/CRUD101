@@ -5,15 +5,15 @@ package ar.edu.ort.crud101;
  */
 
 public class Persona {
-    int Id;
-    String Nombre;
-    String FechaNac;
+    private String Id;
+    private String Nombre;
+    private String FechaNac;
 
-    public int getId() {
+    public String getId() {
         return Id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         Id = id;
     }
 
