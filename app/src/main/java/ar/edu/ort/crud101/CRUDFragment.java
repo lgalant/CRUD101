@@ -73,7 +73,7 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
                 break;
             case R.id.btnPost:
                 Persona p = new Persona();
-                p.setId(id_vw.getText().toString());
+                p.setId(Integer.valueOf(id_vw.getText().toString()));
                 p.setNombre(nombre_vw.getText().toString());
                 p.setFechaNac(fechanac_vw.getText().toString());
                 GsonBuilder builder = new GsonBuilder();
@@ -106,7 +106,7 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
             String urlApi = params[1];
 
             if (method.equals("GET"))
-                getPersona(urlApi);
+               return getPersona(urlApi);
 
             if (method.equals("POST")) {
                 String json = params[2];
@@ -118,9 +118,11 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
 
         @Override
         protected void onPostExecute(Persona persona) {
+            Log.d("ope :","1");
             super.onPostExecute(persona);
-
+            //Log.d("ope :",persona.getNombre());
             if (persona != null) {
+                Log.d("ope :","3");
                 nombre_vw.setText(persona.getNombre());
                 fechanac_vw.setText(persona.getFechaNac());
             }
@@ -172,6 +174,7 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
             Log.d("Respuesta:", respuesta);
             Gson gson = new Gson();
             Persona p = gson.fromJson(respuesta,Persona.class);
+            Log.d("Persona nombre:", p.getNombre());
             return p;
         }
     }
