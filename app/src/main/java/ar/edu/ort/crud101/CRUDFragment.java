@@ -3,7 +3,9 @@ package ar.edu.ort.crud101;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +34,7 @@ import okhttp3.Response;
  */
 public class CRUDFragment extends Fragment implements View.OnClickListener{
 
-
+    DialogFragment df;
     EditText id_vw,nombre_vw,fechanac_vw;
     public CRUDFragment() {
         // Required empty public constructor
@@ -49,6 +51,8 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
         Button post = (Button) v.findViewById(R.id.btnPost);
         Button put = (Button) v.findViewById(R.id.btnPut);
         Button delete = (Button) v.findViewById(R.id.btnDelete);
+        Button viewAll = (Button) v.findViewById(R.id.viewAll);
+
 
         id_vw = (EditText) v.findViewById(R.id.id);
         nombre_vw = (EditText) v.findViewById(R.id.nombre);
@@ -58,6 +62,7 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
         post.setOnClickListener(this);
         put.setOnClickListener(this);
         delete.setOnClickListener(this);
+        viewAll.setOnClickListener(this);
 
         return v;
     }
@@ -81,7 +86,6 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
                 System.out.println(gson.toJson(p));
 
                 new ConectarAPITask().execute("POST",urlDeApi, gson.toJson(p));
-                Log.d("Push", "post");
                 break;
             case R.id.btnPut:
                 Log.d("Push", "put");
@@ -89,7 +93,12 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
             case R.id.btnDelete:
                 Log.d("Push", "delete");
                 break;
-
+            case R.id.viewAll:
+                Log.d("Get All", urlDeApi);
+                FragmentManager fm = getFragmentManager();
+                ViewAllFragment viewAllFragment = new ViewAllFragment();
+                viewAllFragment.show(fm,"View all people");
+                break;
 
         }
     }
@@ -104,9 +113,12 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
 
             String method = params[0];
             String urlApi = params[1];
+            String resultado;
 
-            if (method.equals("GET"))
-               return getPersona(urlApi);
+            if (method.equals("GET")) {
+                return  getPersona(urlApi);
+            }
+
 
             if (method.equals("POST")) {
                 String json = params[2];
@@ -118,11 +130,9 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
 
         @Override
         protected void onPostExecute(Persona persona) {
-            Log.d("ope :","1");
             super.onPostExecute(persona);
             //Log.d("ope :",persona.getNombre());
             if (persona != null) {
-                Log.d("ope :","3");
                 nombre_vw.setText(persona.getNombre());
                 fechanac_vw.setText(persona.getFechaNac());
             }
@@ -159,10 +169,10 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
 
             try {
                 Response response = client.newCall(request).execute();
-                Persona resultado = parsearResultado(response.body().string());
-                return resultado;
+                Persona persona = parsearResultado(response.body().string());
+                return persona;
             }
-            catch (IOException |JSONException e){
+            catch (IOException e){
                 Log.d("Error :", e.getMessage());
                 return null;
 
@@ -170,12 +180,25 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
         }
 
 
-        private Persona parsearResultado(String respuesta)  throws JSONException {
+        private Persona parsearResultado(String respuesta)   {
+            if (respuesta == null || respuesta.length()==0)
+                return null;
+
             Log.d("Respuesta:", respuesta);
-            Gson gson = new Gson();
-            Persona p = gson.fromJson(respuesta,Persona.class);
-            Log.d("Persona nombre:", p.getNombre());
-            return p;
+
+            try {
+                Gson gson = new Gson();
+                Persona p = gson.fromJson(respuesta, Persona.class);
+                Log.d("Persona nombre:", p.getNombre());
+                return p;
+
+            }
+            catch (Exception e) {
+                Log.d("Error :", e.getMessage());
+                return null;
+            }
+
         }
+
     }
 }

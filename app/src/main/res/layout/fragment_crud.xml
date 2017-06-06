@@ -55,4 +55,9 @@
             android:layout_height="50dp"
             android:text="DELETE"/>
     </LinearLayout>
+    <Button
+        android:id="@+id/viewAll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="VIEW ALL"/>
 </LinearLayout>
