@@ -68,7 +68,10 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(View v) {;
+        GsonBuilder builder;
+        Gson gson;
+        Persona p;
         String urlDeApi = "http://templateapiort.azurewebsites.net/api/persona/";
         switch (v.getId()) {
             case R.id.btnGet:
@@ -77,18 +80,26 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
                 new ConectarAPITask().execute("GET", urlGet);
                 break;
             case R.id.btnPost:
-                Persona p = new Persona();
+                p = new Persona();
                 p.setId(Integer.valueOf(id_vw.getText().toString()));
                 p.setNombre(nombre_vw.getText().toString());
                 p.setFechaNac(fechanac_vw.getText().toString());
-                GsonBuilder builder = new GsonBuilder();
-                Gson gson = builder.create();
+                builder = new GsonBuilder();
+                gson = builder.create();
                 System.out.println(gson.toJson(p));
 
                 new ConectarAPITask().execute("POST",urlDeApi, gson.toJson(p));
                 break;
             case R.id.btnPut:
-                Log.d("Push", "put");
+                p = new Persona();
+                p.setId(Integer.valueOf(id_vw.getText().toString()));
+                p.setNombre(nombre_vw.getText().toString());
+                p.setFechaNac(fechanac_vw.getText().toString());
+                builder = new GsonBuilder();
+                gson = builder.create();
+                System.out.println(gson.toJson(p));
+
+                new ConectarAPITask().execute("PUT",urlDeApi, gson.toJson(p));
                 break;
             case R.id.btnDelete:
                 Log.d("Push", "delete");
@@ -120,6 +131,11 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
             }
 
 
+            if (method.equals("PUT")) {
+                String json = params[2];
+                putPersona(urlApi, json);
+            }
+
             if (method.equals("POST")) {
                 String json = params[2];
                 postPersona(urlApi, json);
@@ -140,6 +156,35 @@ public class CRUDFragment extends Fragment implements View.OnClickListener{
         }
 
 
+        // PUT implies putting a resource - completely replacing whatever is available at the given URL with a different thing.
+        // By definition, a PUT is idempotent. Do it as many times as you like, and the result is the same. x=5 is idempotent.
+        // You can PUT a resource whether it previously exists, or not (eg, to Create, or to Update)!
+        // UPDATE
+        private void putPersona(String urlApi, String json) {
+
+            OkHttpClient client = new OkHttpClient();
+
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url(urlApi)
+                    .put(body)
+                    .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                Log.d("response:" , response.toString());
+                return;
+            } catch (Exception e) {
+                Log.d("Error :", e.getMessage());
+                return;
+
+            }
+
+        }
+
+        // POST updates a resource, adds a subsidiary resource, or causes a change.
+        // A POST is not idempotent, in the way that x++ is not idempotent.
+        // INSERT
         private void postPersona(String urlApi, String json) {
 
             OkHttpClient client = new OkHttpClient();
